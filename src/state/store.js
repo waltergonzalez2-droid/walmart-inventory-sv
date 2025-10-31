@@ -1,15 +1,54 @@
-// Logic to append orders and sales to the END of arrays
+import { create } from 'zustand';
+import { store as ls } from '../services/storageService';
 
-// Assuming orders and sales are defined as arrays
-let orders = []; // existing orders
-let sales = [];  // existing sales
+export const useStore = create((set, get) => ({
+  skus: [],
+  stores: [],
+  inventory: [],
+  sales: [],
+  orders: [],
+  alerts: [],
 
-// Example function to add an order
-function addOrder(order) {
-    orders.push(order);  // change to push to end
-}
+  loadData: () => {
+    const skus = ls.get('skus', []);
+    const stores = ls.get('stores', []);
+    let inventory = ls.get('inventory', []);
+    const sales = ls.get('sales', []);
+    const orders = ls.get('purchaseOrders', []);
+    const alerts = ls.get('alerts', []);
 
-// Example function to add a sale
-function addSale(sale) {
-    sales.push(sale);  // change to push to end
-}
+    stores.forEach((store) => {
+      skus.forEach((sku) => {
+        const exists = inventory.some((inv) => inv.storeId === store.id && inv.skuId === sku.id);
+        if (!exists) {
+          inventory.push({
+            storeId: store.id,
+            skuId: sku.id,
+            onHand: 0,
+            reorderPoint: 10,
+          });
+        }
+      });
+    });
+
+    ls.set('inventory', inventory);
+    set({ skus, stores, inventory, sales, orders, alerts });
+  },
+
+  applySale: (sale) => {
+    const inv = get().inventory.map((i) =>
+      i.storeId === sale.storeId && i.skuId === sale.skuId
+        ? { ...i, onHand: Math.max(0, i.onHand - sale.qty) }
+        : i
+    );
+    set({ inventory: inv, sales: [...get().sales, sale] });
+    ls.set('inventory', inv);
+    ls.set('sales', get().sales);
+  },
+
+  addOrder: (order) => {
+    const o = [...get().orders, order];
+    set({ orders: o });
+    ls.set('purchaseOrders', o);
+  },
+}));
