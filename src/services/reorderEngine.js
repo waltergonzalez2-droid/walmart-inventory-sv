@@ -1,3 +1,5 @@
+import { generateUUID } from '../utils/uuid';
+
 export function evaluateInventory(inventory, skusMap) {
   const orders = [];
   inventory.forEach(item => {
