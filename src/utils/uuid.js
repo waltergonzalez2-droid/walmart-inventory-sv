@@ -1,1 +1,7 @@
-// Polyfill for crypto.randomUUID()\n// Provides a fallback UUID v4 generator\n\nfunction generateUUID() {\n    // Check if crypto.randomUUID exists\n    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {\n        return crypto.randomUUID();\n    }\n    // Fallback to manually generate UUID v4\n    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {\n        const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);\n        return v.toString(16);\n    });\n}\n\n// Export the function\nexport { generateUUID };\n\n// Set globally if needed\nif (typeof window !== 'undefined') {\n    window.generateUUID = generateUUID;\n}
+export const generateUUID = () => {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+};
