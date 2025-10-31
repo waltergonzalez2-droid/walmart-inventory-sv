@@ -1,3 +1,5 @@
+import { generateUUID } from '../utils/uuid';
+
 let intervalId = null;
 
 export function startSimulator(callback, skus, stores, rate = 1500) {
