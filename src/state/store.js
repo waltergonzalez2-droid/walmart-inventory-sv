@@ -1,11 +1,15 @@
-// Assuming the file already has the necessary imports and setup
+// Logic to append orders and sales to the END of arrays
 
-// Sample existing code before modification
-const orders = [...]; // existing orders
-const sales = [...]; // existing sales
+// Assuming orders and sales are defined as arrays
+let orders = []; // existing orders
+let sales = [];  // existing sales
 
-// Modify this part to append instead of prepend
-orders.push(newOrder); // Appending order
-sales.push(newSale); // Appending sale
+// Example function to add an order
+function addOrder(order) {
+    orders.push(order);  // change to push to end
+}
 
-// Continue with the rest of the file
+// Example function to add a sale
+function addSale(sale) {
+    sales.push(sale);  // change to push to end
+}
