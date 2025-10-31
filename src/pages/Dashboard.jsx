@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useStore } from '../state/store';
 import { startSimulator } from '../services/demandSimulator';
 import { evaluateInventory } from '../services/reorderEngine';
@@ -27,6 +27,7 @@ export default function Dashboard() {
   const [simRunning, setSimRunning] = useState(false);
   const [stopSim, setStopSim] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const evaluationIntervalRef = useRef(null);
 
   useEffect(() => { loadData(); }, []);
 
@@ -38,16 +39,23 @@ export default function Dashboard() {
     if (simRunning) {
       // 🔴 Detener simulación
       if (stopSim) stopSim();
+      if (evaluationIntervalRef.current) clearInterval(evaluationIntervalRef.current);
       setStopSim(null);
       setSimRunning(false);
     } else {
       // 🟢 Iniciar simulación
       const stop = startSimulator((sale) => {
         applySale(sale);
+      }, skus, stores, 2000);
+
+      // 🎯 NUEVO: Evaluar inventario cada 10 segundos en batch
+      evaluationIntervalRef.current = setInterval(() => {
         const skuMap = Object.fromEntries(skus.map(s => [s.id, s]));
         const newOrders = evaluateInventory(inventory, skuMap);
-        newOrders.forEach(o => addOrder(o));
-      }, skus, stores, 2000);
+        if (newOrders.length > 0) {
+          newOrders.forEach(o => addOrder(o));
+        }
+      }, 10000); // Evaluar cada 10 segundos
 
       setStopSim(() => stop);
       setSimRunning(true);
@@ -168,7 +176,7 @@ export default function Dashboard() {
           <section className="bg-white border-2 border-gray-100 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 lg:col-span-2">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-walmart-black">Inventario por Producto</h2>
-              <select className="text-sm border-2 border-gray-200 rounded-lg px-4 py-2 bg-white text-walmart-black font-medium focus:border-walmart-blue focus:ring-2 focus:ring-walmart-blue/20 outline-none">
+              <select className="text-sm border-2 border-gray-200 rounded-lg px-4 py-2 bg-white text-walmart-black font-medium focus:border-walmart-blue focus:ring-2 focus:ring-walmart-blue/20">
                 <option>Últimos 7 días</option>
                 <option>Último mes</option>
                 <option>Último año</option>
@@ -264,7 +272,7 @@ export default function Dashboard() {
 
 function KpiCard({ title, value, trend, icon, color, alert }) {
   return (
-    <div className={`stat-card ${alert ? 'animate-pulse' : ''}`}>
+    <div className={`stat-card ${alert ? 'animate-pulse' : ''}`}> 
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className={`p-2.5 rounded-lg ${
@@ -273,7 +281,7 @@ function KpiCard({ title, value, trend, icon, color, alert }) {
               : color === '#E60012' 
                 ? 'bg-red-500' 
                 : 'bg-green-500'
-          } text-white`}>
+          } text-white`}> 
             {icon}
           </div>
           <p className="text-sm text-walmart-black font-medium flex items-center gap-2">
