@@ -8,7 +8,7 @@ export function evaluateInventory(inventory, skusMap) {
       const sku = skusMap[item.skuId];
       const qtyToOrder = Math.max(item.maxStock - onHand, sku?.moq || 1);
       orders.push({
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         skuId: item.skuId,
         storeId: item.storeId,
         qty: qtyToOrder,
